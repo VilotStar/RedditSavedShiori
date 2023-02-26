@@ -1,8 +1,6 @@
-use RedditSavePostShiori::reddit::{self as reddit, Saved};
-use scraper;
+use RedditSavePostShiori::reddit;
 use tokio;
 
-#[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
 
@@ -11,5 +9,12 @@ async fn main() {
     
     let saved = reddit::Saved::new(&session_token);
     
-    saved.get_posts(&username).await;
+    match saved.get_posts(&username).await {
+        Some(posts) => {
+            
+        },
+        None => {
+            panic!("Failed getting posts");
+        }
+    }
 }

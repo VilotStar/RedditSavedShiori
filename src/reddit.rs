@@ -8,12 +8,6 @@ pub struct Post {
     subreddit: String
 }
 
-impl Post {
-    fn new() {
-
-    }
-}
-
 pub struct Saved {
     client: reqwest::Client
 }
@@ -34,29 +28,30 @@ impl Saved {
         }
     }
 
-    pub async fn get_posts(&self, username: &str) {
+    pub async fn get_posts(&self, username: &str) -> Option<Vec<Post>> {
         let url = format!("https://old.reddit.com/user/{}/saved?limit=25", username);
 
         match self.client.get(url).send().await {
             Ok(rep) => {
-                Self::scrape_posts(&rep.text().await.unwrap());
+                Some(Self::scrape_posts(&rep.text().await.unwrap()))
             },
-            Err(_) => unimplemented!(),
+            Err(_) => {
+                None
+            }
         }
     }
 
-    fn scrape_posts(text: &str) {
+    fn scrape_posts(text: &str) -> Vec<Post> {
         let document = scraper::Html::parse_document(text);
         let posts_sel = scraper::Selector::parse(".thing.saved.link").unwrap();
 
-        let posts: Vec<Post>;
-        for element in document.select(&posts_sel) {
-            let post = Post {
-                link: element.value().attr("data-permalink").unwrap().to_string(),
-                data_link: element.value().attr("data-link").unwrap().to_string(),
-                subreddit: element.value().attr("data-subreddit").unwrap().to_string(),
-            };
-            posts.append(post);
-        }
+        let posts: Vec<Post> = document.select(&posts_sel).into_iter().map(|ele| { 
+            Post {
+                link: ele.value().attr("data-permalink").unwrap().to_string(),
+                data_link: ele.value().attr("data-link").unwrap().to_string(),
+                subreddit: ele.value().attr("data-subreddit").unwrap().to_string()
+            }
+        }).rev().collect();
+        posts
     }
 }
