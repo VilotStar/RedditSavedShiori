@@ -1,11 +1,15 @@
-use std::default;
-
 use reqwest::{self, Url};
 
 pub struct Post {
     link: String,
     data_link: String,
     subreddit: String
+}
+
+impl PartialEq for Post {
+    fn eq(&self, other: &Self) -> bool {
+        self.link == other.link
+    }
 }
 
 pub struct Saved {
